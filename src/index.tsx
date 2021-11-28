@@ -1,9 +1,9 @@
-import { DeviceEventEmitter } from 'react-native';
+import { DeviceEventEmitter, EmitterSubscription } from 'react-native';
 type ListenerType = {
   [key: string]: {
     eventName: string;
     callback: Function;
-    remove: Function;
+    emitter: EmitterSubscription;
   };
 };
 export default class EventRegister {
@@ -11,7 +11,7 @@ export default class EventRegister {
     count: 0,
     refs: {} as ListenerType,
   };
-  static _Watcher: { [key: string]: any } = {};
+  static _Watcher: { [key: string]: EmitterSubscription } = {};
   static onEventListener(eventName: string, callback: () => any): string {
     EventRegister._Watcher[eventName] = DeviceEventEmitter.addListener(
       eventName,
@@ -21,12 +21,12 @@ export default class EventRegister {
   }
   static addEventListener(eventName: string, callback: () => any): string {
     const eventId = `E-${EventRegister._Listeners.count}${eventName}`;
-    const remove = DeviceEventEmitter.addListener(eventId, callback);
+    const emitter = DeviceEventEmitter.addListener(eventId, callback);
     EventRegister._Listeners.count++;
     EventRegister._Listeners.refs[eventId] = {
       eventName,
       callback,
-      remove,
+      emitter,
     };
     DeviceEventEmitter.emit(eventName, true);
     return eventName;
@@ -50,15 +50,14 @@ export default class EventRegister {
           EventRegister._Listeners.refs[eventId] &&
           EventRegister._Listeners.refs[eventId].eventName === eventName
         ) {
-          EventRegister._Listeners.refs[eventId].remove &&
-            EventRegister._Listeners.refs[eventId].remove();
+          EventRegister._Listeners.refs[eventId].emitter.remove();
           if (
             EventRegister._Listeners.refs[eventId].eventName in
             EventRegister._Watcher
           ) {
             EventRegister._Watcher[
               EventRegister._Listeners.refs[eventId].eventName
-            ]();
+            ].remove();
             delete EventRegister._Watcher[
               EventRegister._Listeners.refs[eventId].eventName
             ];
