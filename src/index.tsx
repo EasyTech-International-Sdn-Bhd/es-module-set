@@ -30,39 +30,52 @@ export default class EventRegister {
     DeviceEventEmitter.emit(eventName, true);
   }
   static emitEvent(eventName: string, data: any) {
-    for (const listenersKey in EventRegister._Listeners.refs) {
-      const { eventName: lookupEvent } =
-        EventRegister._Listeners.refs[listenersKey];
-      if (lookupEvent === eventName) {
-        DeviceEventEmitter.emit(listenersKey, data);
-      }
+    if (Object.keys(EventRegister._Listeners.refs).length > 0) {
+      Object.keys(EventRegister._Listeners.refs).forEach((eventId) => {
+        if (
+          EventRegister._Listeners.refs[eventId] &&
+          EventRegister._Listeners.refs[eventId].eventName === eventName
+        ) {
+          DeviceEventEmitter.emit(eventId, data);
+        }
+      });
     }
   }
   static removeEventListener(eventName: string) {
-    for (const listenersKey in EventRegister._Listeners.refs) {
-      if (listenersKey in EventRegister._Listeners.refs) {
-        const { eventName: lookupEvent, remove } =
-          EventRegister._Listeners.refs[listenersKey];
-        if (lookupEvent === eventName) {
-          remove && remove();
-          if (eventName in EventRegister._Watcher) {
-            EventRegister._Watcher[eventName] &&
-              EventRegister._Watcher[eventName]();
-            delete EventRegister._Watcher[eventName];
+    if (Object.keys(EventRegister._Listeners.refs).length > 0) {
+      Object.keys(EventRegister._Listeners.refs).forEach((eventId) => {
+        if (
+          EventRegister._Listeners.refs[eventId] &&
+          EventRegister._Listeners.refs[eventId].eventName === eventName
+        ) {
+          EventRegister._Listeners.refs[eventId].remove &&
+            EventRegister._Listeners.refs[eventId].remove();
+          if (
+            EventRegister._Listeners.refs[eventId].eventName in
+            EventRegister._Watcher
+          ) {
+            EventRegister._Watcher[
+              EventRegister._Listeners.refs[eventId].eventName
+            ]();
+            delete EventRegister._Watcher[
+              EventRegister._Listeners.refs[eventId].eventName
+            ];
           }
-          delete EventRegister._Listeners.refs[listenersKey];
+          delete EventRegister._Listeners.refs[eventId];
           EventRegister._Listeners.count--;
         }
-      }
+      });
     }
   }
   static removeAllListeners() {
-    for (const listenersKey in EventRegister._Listeners) {
-      if (listenersKey in EventRegister._Listeners) {
-        const { eventName: lookupEvent } =
-          EventRegister._Listeners.refs[listenersKey];
-        EventRegister.removeEventListener(lookupEvent);
-      }
+    if (EventRegister._Listeners.count > 0) {
+      Object.keys(EventRegister._Listeners.refs).forEach((eventId) => {
+        if (EventRegister._Listeners.refs[eventId]) {
+          EventRegister.removeEventListener(
+            EventRegister._Listeners.refs[eventId].eventName
+          );
+        }
+      });
     }
   }
   /*
