@@ -30,7 +30,7 @@ export default class EventRegister {
     DeviceEventEmitter.emit(eventName, true);
   }
   static emitEvent(eventName: string, data: any) {
-    for (const listenersKey in EventRegister._Listeners) {
+    for (const listenersKey in EventRegister._Listeners.refs) {
       const { eventName: lookupEvent } =
         EventRegister._Listeners.refs[listenersKey];
       if (lookupEvent === eventName) {
@@ -39,8 +39,8 @@ export default class EventRegister {
     }
   }
   static removeEventListener(eventName: string) {
-    for (const listenersKey in EventRegister._Listeners) {
-      if (listenersKey in EventRegister._Listeners) {
+    for (const listenersKey in EventRegister._Listeners.refs) {
+      if (listenersKey in EventRegister._Listeners.refs) {
         const { eventName: lookupEvent, remove } =
           EventRegister._Listeners.refs[listenersKey];
         if (lookupEvent === eventName) {
@@ -51,6 +51,7 @@ export default class EventRegister {
             delete EventRegister._Watcher[eventName];
           }
           delete EventRegister._Listeners.refs[listenersKey];
+          EventRegister._Listeners.count--;
         }
       }
     }
