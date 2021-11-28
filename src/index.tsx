@@ -12,13 +12,14 @@ export default class EventRegister {
     refs: {} as ListenerType,
   };
   static _Watcher: { [key: string]: any } = {};
-  static onEventListener(eventName: string, callback: () => any): void {
+  static onEventListener(eventName: string, callback: () => any): string {
     EventRegister._Watcher[eventName] = DeviceEventEmitter.addListener(
       eventName,
       callback
     );
+    return eventName;
   }
-  static addEventListener(eventName: string, callback: () => any) {
+  static addEventListener(eventName: string, callback: () => any): string {
     const eventId = `E-${EventRegister._Listeners.count}${eventName}`;
     const remove = DeviceEventEmitter.addListener(eventId, callback);
     EventRegister._Listeners.count++;
@@ -28,6 +29,7 @@ export default class EventRegister {
       remove,
     };
     DeviceEventEmitter.emit(eventName, true);
+    return eventName;
   }
   static emitEvent(eventName: string, data: any) {
     if (Object.keys(EventRegister._Listeners.refs).length > 0) {
