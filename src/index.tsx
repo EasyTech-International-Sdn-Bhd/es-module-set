@@ -11,12 +11,19 @@ export default class EventRegister {
     count: 0,
     refs: {} as ListenerType,
   };
-  static _Watcher: { [key: string]: EmitterSubscription } = {};
+  static _Watcher = {
+    count: 0,
+    refs: {} as ListenerType,
+  };
   static onEventListener(eventName: string, callback: () => any): string {
-    EventRegister._Watcher[eventName] = DeviceEventEmitter.addListener(
+    const eventId = `W-${EventRegister._Watcher.count}${eventName}`;
+    const emitter = DeviceEventEmitter.addListener(eventId, callback);
+    EventRegister._Watcher.refs[eventId] = {
       eventName,
-      callback
-    );
+      callback,
+      emitter,
+    };
+    EventRegister._Watcher.count++;
     return eventName;
   }
   static addEventListener(eventName: string, callback: () => any): string {
@@ -28,6 +35,16 @@ export default class EventRegister {
       callback,
       emitter,
     };
+    if (Object.keys(EventRegister._Watcher.refs).length > 0) {
+      Object.keys(EventRegister._Watcher).forEach((_eventId) => {
+        if (
+          EventRegister._Watcher.refs[_eventId] &&
+          EventRegister._Watcher.refs[_eventId].eventName === eventName
+        ) {
+          DeviceEventEmitter.emit(_eventId, true);
+        }
+      });
+    }
     DeviceEventEmitter.emit(eventName, true);
     return eventName;
   }
@@ -51,16 +68,17 @@ export default class EventRegister {
           EventRegister._Listeners.refs[eventId].eventName === eventName
         ) {
           EventRegister._Listeners.refs[eventId].emitter.remove();
-          if (
-            EventRegister._Listeners.refs[eventId].eventName in
-            EventRegister._Watcher
-          ) {
-            EventRegister._Watcher[
-              EventRegister._Listeners.refs[eventId].eventName
-            ].remove();
-            delete EventRegister._Watcher[
-              EventRegister._Listeners.refs[eventId].eventName
-            ];
+          if (EventRegister._Watcher.count > 0) {
+            Object.keys(EventRegister._Watcher.refs).forEach((_eventId) => {
+              if (
+                EventRegister._Watcher.refs[_eventId] &&
+                EventRegister._Watcher.refs[_eventId].eventName === eventName
+              ) {
+                EventRegister._Watcher.refs[_eventId].emitter.remove();
+                delete EventRegister._Watcher.refs[_eventId];
+                EventRegister._Watcher.count--;
+              }
+            });
           }
           delete EventRegister._Listeners.refs[eventId];
           EventRegister._Listeners.count--;
