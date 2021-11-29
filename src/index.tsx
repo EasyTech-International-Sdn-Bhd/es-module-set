@@ -45,7 +45,6 @@ export default class EventRegister {
         }
       });
     }
-    DeviceEventEmitter.emit(eventName, true);
     return eventName;
   }
   static emitEvent(eventName: string, data: any) {
