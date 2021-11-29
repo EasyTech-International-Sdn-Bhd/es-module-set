@@ -36,7 +36,7 @@ export default class EventRegister {
       emitter,
     };
     if (Object.keys(EventRegister._Watcher.refs).length > 0) {
-      Object.keys(EventRegister._Watcher).forEach((_eventId) => {
+      Object.keys(EventRegister._Watcher.refs).forEach((_eventId) => {
         if (
           EventRegister._Watcher.refs[_eventId] &&
           EventRegister._Watcher.refs[_eventId].eventName === eventName
