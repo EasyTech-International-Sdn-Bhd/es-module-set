@@ -16,6 +16,7 @@ export default class EventRegister {
     refs: {} as ListenerType,
   };
   static onEventListener(eventName: string, callback: () => any): string {
+    EventRegister._Watcher.count++;
     const eventId = `W-${EventRegister._Watcher.count}${eventName}`;
     const emitter = DeviceEventEmitter.addListener(eventId, callback);
     EventRegister._Watcher.refs[eventId] = {
@@ -23,13 +24,12 @@ export default class EventRegister {
       callback,
       emitter,
     };
-    EventRegister._Watcher.count++;
     return eventName;
   }
   static addEventListener(eventName: string, callback: () => any): string {
+    EventRegister._Listeners.count++;
     const eventId = `E-${EventRegister._Listeners.count}${eventName}`;
     const emitter = DeviceEventEmitter.addListener(eventId, callback);
-    EventRegister._Listeners.count++;
     EventRegister._Listeners.refs[eventId] = {
       eventName,
       callback,
